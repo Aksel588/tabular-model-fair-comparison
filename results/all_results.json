@@ -1,0 +1,275 @@
+[
+  {
+    "dataset_meta": {
+      "key": "breast_cancer",
+      "name": "Breast Cancer Wisconsin",
+      "task": "classification",
+      "source": "sklearn.datasets.load_breast_cancer (UCI)",
+      "license_note": "BSD-style (scikit-learn dataset)",
+      "target_description": "Binary: malignant (1) vs benign (0)",
+      "leakage_notes": "Classic medical tabular benchmark; random split (not patient-level if duplicates exist\u2014limitation for clinical claims).",
+      "n_samples": 569,
+      "n_features": 30,
+      "n_classes": 2,
+      "class_imbalance_ratio": 1.6764705882352942
+    },
+    "baselines": {
+      "baseline_majority_accuracy": 0.631578947368421,
+      "baseline_majority_f1": 0.48896434634974534
+    },
+    "results": [
+      {
+        "dataset": "breast_cancer",
+        "task": "classification",
+        "model": "logistic_regression",
+        "best_cv_f1": 0.975832888969847,
+        "train_accuracy": 0.9868131868131869,
+        "test_accuracy": 0.956140350877193,
+        "train_f1": 0.9867972264421968,
+        "test_f1": 0.9564299597121931,
+        "gap_f1": 0.030367266730003672,
+        "fit_time_s": 1.9249784580315463,
+        "infer_ms_per_row_batch": 0.0095990524226963,
+        "best_params": {
+          "clf__solver": "lbfgs",
+          "clf__penalty": "l2",
+          "clf__C": 0.1623776739188721
+        }
+      },
+      {
+        "dataset": "breast_cancer",
+        "task": "classification",
+        "model": "decision_tree",
+        "best_cv_f1": 0.9360611520773204,
+        "train_accuracy": 0.9868131868131869,
+        "test_accuracy": 0.9385964912280702,
+        "train_f1": 0.9867634237020464,
+        "test_f1": 0.9387429907553746,
+        "gap_f1": 0.0480204329466718,
+        "fit_time_s": 0.2111010000226088,
+        "infer_ms_per_row_batch": 0.006324561055455553,
+        "best_params": {
+          "clf__min_samples_split": 2,
+          "clf__min_samples_leaf": 1,
+          "clf__max_depth": 4
+        }
+      },
+      {
+        "dataset": "breast_cancer",
+        "task": "classification",
+        "model": "random_forest",
+        "best_cv_f1": 0.960389193719239,
+        "train_accuracy": 1.0,
+        "test_accuracy": 0.9473684210526315,
+        "train_f1": 1.0,
+        "test_f1": 0.9473684210526315,
+        "gap_f1": 0.052631578947368474,
+        "fit_time_s": 3.7092135419952683,
+        "infer_ms_per_row_batch": 0.13029021047578568,
+        "best_params": {
+          "clf__n_estimators": 400,
+          "clf__min_samples_leaf": 1,
+          "clf__max_depth": null
+        }
+      },
+      {
+        "dataset": "breast_cancer",
+        "task": "classification",
+        "model": "xgboost",
+        "best_cv_f1": 0.9691365673131295,
+        "train_accuracy": 1.0,
+        "test_accuracy": 0.956140350877193,
+        "train_f1": 1.0,
+        "test_f1": 0.9557756825927252,
+        "gap_f1": 0.04422431740727484,
+        "fit_time_s": 0.8662361670285463,
+        "infer_ms_per_row_batch": 0.009104166804861865,
+        "best_params": {
+          "clf__subsample": 0.7,
+          "clf__n_estimators": 100,
+          "clf__max_depth": 4,
+          "clf__learning_rate": 0.1,
+          "clf__colsample_bytree": 0.9
+        }
+      }
+    ]
+  },
+  {
+    "dataset_meta": {
+      "key": "wine",
+      "name": "Wine Recognition",
+      "task": "classification",
+      "source": "sklearn.datasets.load_wine (UCI)",
+      "license_note": "BSD-style (scikit-learn dataset)",
+      "target_description": "Multiclass: cultivar (3 classes)",
+      "leakage_notes": "Small n; high variance in test metrics; good for comparing overfitting, weak for broad claims.",
+      "n_samples": 178,
+      "n_features": 13,
+      "n_classes": 3,
+      "class_imbalance_ratio": 1.5
+    },
+    "baselines": {
+      "baseline_majority_accuracy": 0.3888888888888889,
+      "baseline_majority_f1": 0.2177777777777778
+    },
+    "results": [
+      {
+        "dataset": "wine",
+        "task": "classification",
+        "model": "logistic_regression",
+        "best_cv_f1": 0.9859591283202395,
+        "train_accuracy": 0.9859154929577465,
+        "test_accuracy": 1.0,
+        "train_f1": 0.9858725318417683,
+        "test_f1": 1.0,
+        "gap_f1": -0.014127468158231737,
+        "fit_time_s": 0.1195522079942748,
+        "infer_ms_per_row_batch": 0.017717582522891462,
+        "best_params": {
+          "clf__solver": "lbfgs",
+          "clf__penalty": "l2",
+          "clf__C": 0.0379269019073225
+        }
+      },
+      {
+        "dataset": "wine",
+        "task": "classification",
+        "model": "decision_tree",
+        "best_cv_f1": 0.9231958390216096,
+        "train_accuracy": 0.9859154929577465,
+        "test_accuracy": 1.0,
+        "train_f1": 0.9859056090931555,
+        "test_f1": 1.0,
+        "gap_f1": -0.0140943909068445,
+        "fit_time_s": 0.08461154095130041,
+        "infer_ms_per_row_batch": 0.016790499406245846,
+        "best_params": {
+          "clf__min_samples_split": 5,
+          "clf__min_samples_leaf": 2,
+          "clf__max_depth": 8
+        }
+      },
+      {
+        "dataset": "wine",
+        "task": "classification",
+        "model": "random_forest",
+        "best_cv_f1": 0.9789024262280762,
+        "train_accuracy": 1.0,
+        "test_accuracy": 1.0,
+        "train_f1": 1.0,
+        "test_f1": 1.0,
+        "gap_f1": 0.0,
+        "fit_time_s": 2.338762291998137,
+        "infer_ms_per_row_batch": 0.4033368054984344,
+        "best_params": {
+          "clf__n_estimators": 200,
+          "clf__min_samples_leaf": 1,
+          "clf__max_depth": null
+        }
+      },
+      {
+        "dataset": "wine",
+        "task": "classification",
+        "model": "xgboost",
+        "best_cv_f1": 0.9719118727109883,
+        "train_accuracy": 1.0,
+        "test_accuracy": 1.0,
+        "train_f1": 1.0,
+        "test_f1": 1.0,
+        "gap_f1": 0.0,
+        "fit_time_s": 0.7606135410023853,
+        "infer_ms_per_row_batch": 0.030658582949803934,
+        "best_params": {
+          "clf__subsample": 0.7,
+          "clf__n_estimators": 100,
+          "clf__max_depth": 4,
+          "clf__learning_rate": 0.01,
+          "clf__colsample_bytree": 0.7
+        }
+      }
+    ]
+  },
+  {
+    "dataset_meta": {
+      "key": "california_housing",
+      "name": "California Housing",
+      "task": "regression",
+      "source": "sklearn / Pace & Barry (1997)",
+      "license_note": "See sklearn dataset description",
+      "target_description": "Median house value (sklearn scale)",
+      "leakage_notes": "Random split ignores geography; spatial CV would be stricter.",
+      "n_samples": 20640,
+      "n_features": 8,
+      "n_classes": 0,
+      "class_imbalance_ratio": null
+    },
+    "baselines": {
+      "baseline_mean_rmse": 1.1448563543099792
+    },
+    "results": [
+      {
+        "dataset": "california_housing",
+        "task": "regression",
+        "model": "ridge",
+        "best_cv_rmse": 0.7209854562694445,
+        "train_rmse": 0.7196757085832222,
+        "test_rmse": 0.745581358293655,
+        "gap_rmse": -0.025905649710432854,
+        "fit_time_s": 0.29108975001145154,
+        "infer_ms_per_row_batch": 0.00020522456061159976,
+        "best_params": {
+          "reg__alpha": 0.001
+        }
+      },
+      {
+        "dataset": "california_housing",
+        "task": "regression",
+        "model": "decision_tree",
+        "best_cv_rmse": 0.6172488389077713,
+        "train_rmse": 0.5054471679833508,
+        "test_rmse": 0.59777745113437,
+        "gap_rmse": -0.09233028315101921,
+        "fit_time_s": 0.6603083749650978,
+        "infer_ms_per_row_batch": 0.00020343798870137755,
+        "best_params": {
+          "reg__min_samples_leaf": 20,
+          "reg__max_depth": null
+        }
+      },
+      {
+        "dataset": "california_housing",
+        "task": "regression",
+        "model": "random_forest",
+        "best_cv_rmse": 0.5137617163039322,
+        "train_rmse": 0.1844791477129299,
+        "test_rmse": 0.5025684096539096,
+        "gap_rmse": -0.3180892619409797,
+        "fit_time_s": 77.73567337496206,
+        "infer_ms_per_row_batch": 0.012190417156355318,
+        "best_params": {
+          "reg__n_estimators": 400,
+          "reg__min_samples_leaf": 1,
+          "reg__max_depth": null
+        }
+      },
+      {
+        "dataset": "california_housing",
+        "task": "regression",
+        "model": "xgboost",
+        "best_cv_rmse": 0.4528157881669279,
+        "train_rmse": 0.17679443304395376,
+        "test_rmse": 0.4389800512159446,
+        "gap_rmse": -0.2621856181719908,
+        "fit_time_s": 4.92342154099606,
+        "infer_ms_per_row_batch": 0.0007078386599544522,
+        "best_params": {
+          "reg__subsample": 0.9,
+          "reg__n_estimators": 400,
+          "reg__max_depth": 8,
+          "reg__learning_rate": 0.05,
+          "reg__colsample_bytree": 0.7
+        }
+      }
+    ]
+  }
+]
