@@ -4,7 +4,7 @@
 We’re told to “just use XGBoost” on tabular data. Sometimes that’s right—but *when* is a linear model enough? I ran a fixed experiment: same train/test split, same number of hyperparameter trials per model, same preprocessing rules. Thread on what happened 👇
 
 **Post 2**  
-Setup: Logistic / Ridge + shallow Decision Tree vs Random Forest + XGBoost. Metrics: F1 (weighted) + accuracy for classification, RMSE for regression. Inner CV for tuning; test set used once. No peeking.
+Setup: Logistic / Ridge + shallow Decision Tree vs Random Forest + sklearn **HistGradientBoosting** + XGBoost. Metrics: F1 (weighted) + accuracy for classification, RMSE for regression. Inner CV for tuning; test set used once. No peeking.
 
 **Post 3**  
 “Competitive” = within a small margin of the best test score (see `config.py`). That’s stricter than eyeballing leaderboards—it forces you to say *how close* is close enough.

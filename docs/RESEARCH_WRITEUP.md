@@ -4,7 +4,7 @@
 
 Classical machine learning practice often assumes that tree ensembles and gradient boosting dominate tabular problems once hyperparameters are tuned. That pattern is real in many competitions, but it is not universal: **linear models can match or approach ensemble performance** when the signal is roughly additive, features are well behaved, or data are scarce relative to model capacity. This study asks a narrower, testable question: on fixed public benchmarks with **matched preprocessing budgets** and **matched hyperparameter search effort**, how often do “simple” and “complex” models land in the same performance band on a held-out test set?
 
-**Limitations stated up front**: three sklearn/UCI-style datasets are not the full universe of “real world”; the Wine set is small enough that perfect test scores are uninformative about deployment. The value is methodological: reproducible protocol and explicit tradeoffs.
+**Limitations stated up front**: six curated public benchmarks are still not the full universe of “real world”; Wine and Diabetes are small enough that test metrics swing widely; California housing’s random split understates spatial correlation. The value is methodological: reproducible protocol and explicit tradeoffs.
 
 ## Hypothesis
 
@@ -16,23 +16,26 @@ These hypotheses are **falsifiable** by the JSON metrics in `results/all_results
 
 ## Data
 
-See [`DATASETS.md`](DATASETS.md). We use two classification tasks (binary + small multiclass) and one regression task, all loadable offline for reproducibility.
+See [`DATASETS.md`](DATASETS.md). We use **four** classification tasks (binary breast cancer and German credit; multiclass Wine and Digits) and **two** regression tasks (California housing, Diabetes). All except `german_credit` load from bundled sklearn data without a network; German credit uses OpenML once, then the local cache.
 
 ## Methodology
 
 - **Split**: 80% train / 20% test (`TEST_SIZE`), stratified for classification.  
-- **Tuning**: `RandomizedSearchCV` with `N_ITER_SEARCH` trials per model, `INNER_CV_SPLITS`-fold inner CV, scoring `f1_weighted` (classification) or RMSE (regression).  
+- **Tuning**: `RandomizedSearchCV` with `N_ITER_SEARCH` trials per model, `INNER_CV_SPLITS`-fold inner CV, scoring `f1_weighted` (classification) or `neg_root_mean_squared_error` (regression; equivalent to minimizing RMSE on folds).  
 - **Metrics**: Accuracy + **F1 (weighted)** for classification; **RMSE** for regression.  
 - **Baselines**: majority class / mean predictor.  
-- **Complexity proxy**: ordinal rank (logistic/ridge < decision tree < random forest < XGBoost) plus wall-clock fit time.
+- **Complexity proxy**: ordinal rank (logistic/ridge < decision tree < random forest < histogram gradient boosting < XGBoost) plus wall-clock fit time.
 
 ## Results
 
-Consult the generated [`results/ANALYSIS.md`](../results/ANALYSIS.md) after running `python run_experiment.py`. Expect:
+Consult the generated [`results/ANALYSIS.md`](../results/ANALYSIS.md) after running `python run_experiment.py` (optionally `python run_experiment.py --datasets ...` to skip slow or networked loads). Expect:
 
-- **Breast cancer**: strong linear separability → logistic competitive with ensembles.  
-- **Wine**: trivially high test scores → emphasize **variance** and small-sample caveats, not winner declarations.  
-- **California housing**: nonlinear structure → boosting often leads RMSE; ridge may lag beyond the competitiveness margin.
+- **Breast cancer**: strong linear separability → logistic often competitive with ensembles.  
+- **Wine**: trivially high test scores possible → emphasize **variance** and small-sample caveats, not winner declarations.  
+- **Digits**: higher-dimensional multiclass tabular signal → ensembles often help; watch train–test gap on the tree.  
+- **German credit**: mixed numeric/categorical columns → exercises one-hot preprocessing; not a fairness audit by itself.  
+- **California housing**: nonlinear structure → boosting often leads RMSE; ridge may lag beyond the competitiveness margin.  
+- **Diabetes**: small *n* → high RMSE variance; still useful for comparing simple vs complex under the same search budget.
 
 ## Analysis
 

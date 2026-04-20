@@ -16,7 +16,12 @@ from sklearn.linear_model import LogisticRegression, Ridge
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
-from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.ensemble import (
+    HistGradientBoostingClassifier,
+    HistGradientBoostingRegressor,
+    RandomForestClassifier,
+    RandomForestRegressor,
+)
 from xgboost import XGBClassifier, XGBRegressor
 
 
@@ -111,6 +116,19 @@ def classification_models(
             ]
         )
 
+    def pipe_hgb(pre: ColumnTransformer) -> Pipeline:
+        return Pipeline(
+            [
+                ("prep", pre),
+                (
+                    "clf",
+                    HistGradientBoostingClassifier(
+                        random_state=random_state,
+                    ),
+                ),
+            ]
+        )
+
     # Param grids use step__param for Pipeline
     grids: Dict[str, Tuple[Any, Dict[str, Any]]] = {
         "logistic_regression": (
@@ -135,6 +153,16 @@ def classification_models(
                 "clf__n_estimators": [100, 200, 400],
                 "clf__max_depth": [None, 8, 16, 24],
                 "clf__min_samples_leaf": [1, 2, 4],
+            },
+        ),
+        "hist_gradient_boosting": (
+            lambda pre: pipe_hgb(pre),
+            {
+                "clf__max_iter": [100, 200, 400],
+                "clf__learning_rate": [0.01, 0.05, 0.1, 0.2],
+                "clf__max_depth": [None, 3, 5, 7],
+                "clf__min_samples_leaf": [10, 20, 40],
+                "clf__l2_regularization": [0.0, 0.1, 1.0],
             },
         ),
         "xgboost": (
@@ -184,6 +212,14 @@ def regression_models(random_state: int) -> Dict[str, Tuple[Any, Dict[str, Any]]
             ]
         )
 
+    def pipe_hgb(pre: ColumnTransformer) -> Pipeline:
+        return Pipeline(
+            [
+                ("prep", pre),
+                ("reg", HistGradientBoostingRegressor(random_state=random_state)),
+            ]
+        )
+
     grids: Dict[str, Tuple[Any, Dict[str, Any]]] = {
         "ridge": (
             lambda pre: pipe_ridge(pre),
@@ -202,6 +238,16 @@ def regression_models(random_state: int) -> Dict[str, Tuple[Any, Dict[str, Any]]
                 "reg__n_estimators": [100, 200, 400],
                 "reg__max_depth": [None, 8, 16, 24],
                 "reg__min_samples_leaf": [1, 2, 4],
+            },
+        ),
+        "hist_gradient_boosting": (
+            lambda pre: pipe_hgb(pre),
+            {
+                "reg__max_iter": [100, 200, 400],
+                "reg__learning_rate": [0.01, 0.05, 0.1, 0.2],
+                "reg__max_depth": [None, 3, 5, 7],
+                "reg__min_samples_leaf": [10, 20, 40],
+                "reg__l2_regularization": [0.0, 0.1, 1.0],
             },
         ),
         "xgboost": (

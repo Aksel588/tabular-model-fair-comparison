@@ -23,7 +23,8 @@ def complexity_rank(model: str) -> int:
         "ridge": 1,
         "decision_tree": 2,
         "random_forest": 3,
-        "xgboost": 4,
+        "hist_gradient_boosting": 4,
+        "xgboost": 5,
     }
     return order.get(model, 0)
 
@@ -52,7 +53,11 @@ def analyze_block(block: Dict[str, Any]) -> Dict[str, Any]:
                 }
             )
         simple = [c for c in competitive if c["model"] in ("logistic_regression", "decision_tree")]
-        complex_m = [c for c in competitive if c["model"] in ("random_forest", "xgboost")]
+        complex_m = [
+            c
+            for c in competitive
+            if c["model"] in ("random_forest", "hist_gradient_boosting", "xgboost")
+        ]
         return {
             "dataset": ds,
             "task": task,
@@ -82,7 +87,11 @@ def analyze_block(block: Dict[str, Any]) -> Dict[str, Any]:
             }
         )
     simple = [c for c in competitive if c["model"] in ("ridge", "decision_tree")]
-    complex_m = [c for c in competitive if c["model"] in ("random_forest", "xgboost")]
+    complex_m = [
+        c
+        for c in competitive
+        if c["model"] in ("random_forest", "hist_gradient_boosting", "xgboost")
+    ]
     return {
         "dataset": ds,
         "task": task,
@@ -99,6 +108,9 @@ def analyze_block(block: Dict[str, Any]) -> Dict[str, Any]:
 def write_analysis_report(blocks: List[Dict[str, Any]], out_path: str) -> None:
     lines = [
         "# Analysis: simple vs complex models",
+        "",
+        "> **Generated file** — Overwritten by `run_experiment.py` (via `write_analysis_report`). "
+        "Content matches the datasets included in that run.",
         "",
         f"Protocol: competitive F1 margin ≤ {config.COMPETITIVE_MARGIN_F1}; "
         f"competitive RMSE relative margin ≤ {config.COMPETITIVE_MARGIN_RMSE_REL:.0%}.",

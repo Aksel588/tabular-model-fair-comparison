@@ -22,7 +22,7 @@ This is **reproducible benchmarking / experimental methodology**, not a claim of
 
 | Output | Description |
 | --- | --- |
-| [`results/all_results.json`](results/all_results.json) | Per-dataset metrics, CV scores, train/test gaps, fit times, best hyperparameters |
+| [`results/all_results.json`](results/all_results.json) | Per-dataset metrics, CV scores, train/test gaps, fit times, batch inference ms/row, best hyperparameters, `dataset_meta` (source, license, leakage notes, class imbalance where applicable) |
 | [`results/ANALYSIS.md`](results/ANALYSIS.md) | Tables: competitiveness vs best model, overfitting proxy |
 | [`results/complexity_tradeoff.png`](results/complexity_tradeoff.png) | Ordinal model complexity vs test metric |
 
@@ -60,6 +60,14 @@ python run_experiment.py
 
 Artifacts are written under [`results/`](results/).
 
+**Subset of datasets** (skips any key you omit; avoids the first OpenML download if you omit `german_credit`):
+
+```bash
+python run_experiment.py --datasets breast_cancer,wine,digits,california_housing,diabetes
+```
+
+Valid keys (default is all): `breast_cancer`, `wine`, `digits`, `german_credit`, `california_housing`, `diabetes`. OpenML German Credit caches files under [`data_cache/`](data_cache/) at the repo root after the first run.
+
 ---
 
 ## Protocol (summary)
@@ -67,7 +75,7 @@ Artifacts are written under [`results/`](results/).
 Constants live in [`config.py`](config.py); do not change them to chase test-set performance.
 
 1. **Train / test:** 80% train, 20% test (stratified for classification). Test used **once** for reporting.
-2. **Tuning:** `RandomizedSearchCV` with **`N_ITER_SEARCH` trials per model** (same budget for every model), **`INNER_CV_SPLITS`-fold** inner CV on **training data only**.
+2. **Tuning:** `RandomizedSearchCV` with **`N_ITER_SEARCH` trials per model** (same budget for every model), **`INNER_CV_SPLITS`-fold** inner CV on **training data only**, optimizing **`f1_weighted`** (classification) or **`neg_root_mean_squared_error`** (regression) on the inner folds.
 3. **Competitive:** classification — within **`COMPETITIVE_MARGIN_F1`** of best test F1; regression — within **`COMPETITIVE_MARGIN_RMSE_REL`** of best test RMSE.
 4. **Baselines:** majority class (classification) / mean predictor (regression).
 5. **Optional:** set `N_REPEATED_SPLITS` in `config.py` to repeat outer splits for mean±std over seeds (more compute).
@@ -76,18 +84,22 @@ Constants live in [`config.py`](config.py); do not change them to chase test-set
 
 - One **sklearn `Pipeline`** per model: imputation → one-hot for categoricals → scaling **only** for linear models; trees skip numeric scaling (scale-invariant).
 - Same search method and iteration budget for each estimator family.
+- **Classification imbalance:** `LogisticRegression` uses `class_weight="balanced"`; `RandomForestClassifier` uses `class_weight="balanced_subsample"` (other models use defaults from [`src/pipelines.py`](src/pipelines.py)).
 
 ---
 
-## Datasets (bundled via sklearn)
+## Datasets
 
 | Key | Task | Notes |
 | --- | --- | --- |
 | `breast_cancer` | Binary classification | Classic numeric benchmark |
 | `wine` | Multiclass (3 classes) | **Small n** — perfect test scores are not deployment evidence |
+| `digits` | Multiclass (10 classes) | 64 numeric features (8×8 pixels); common sklearn tabular-style set |
+| `german_credit` | Binary classification | OpenML Statlog / credit-g; **mixed numeric + categorical**; first run downloads into `data_cache/` |
 | `california_housing` | Regression | Random split ignores geography; spatial CV would be stricter |
+| `diabetes` | Regression | Small n; high metric variance |
 
-Swap loaders in [`src/datasets.py`](src/datasets.py) for OpenML/Kaggle CSVs; keep the training code unchanged.
+Swap or add loaders in [`src/datasets.py`](src/datasets.py) for more OpenML/Kaggle CSVs; keep the training code unchanged.
 
 ---
 
@@ -96,7 +108,7 @@ Swap loaders in [`src/datasets.py`](src/datasets.py) for OpenML/Kaggle CSVs; kee
 | Kind | Models |
 | --- | --- |
 | Simple | `LogisticRegression`, `DecisionTreeClassifier` / `Ridge`, `DecisionTreeRegressor` |
-| Complex | `RandomForestClassifier` / `RandomForestRegressor`, `XGBClassifier` / `XGBRegressor` |
+| Complex | `RandomForest*`, **`HistGradientBoosting*`** (sklearn native histogram boosting), `XGB*` |
 
 ---
 
@@ -130,9 +142,10 @@ Swap loaders in [`src/datasets.py`](src/datasets.py) for OpenML/Kaggle CSVs; kee
 
 ## Limitations (read before citing)
 
-- Three sklearn/UCI-style sets are **not** the full “real world.”
-- **Wine** is tiny; treat extreme metrics as a cautionary tale about sample size.
+- The included public sets are **not** the full “real world.”
+- **Wine** and **Diabetes** are small; treat extreme or noisy metrics as a cautionary tale about sample size.
 - **California housing:** random split underestimates spatial correlation; claims about geographic deployment need stronger validation design.
+- **German credit:** historical credit data with sensitive attributes; this benchmark does not substitute for a fairness or compliance review.
 
 ---
 
@@ -144,5 +157,4 @@ This project is licensed under the [MIT License](LICENSE). Third-party libraries
 
 ## Acknowledgments
 
-Built with [scikit-learn](https://scikit-learn.org/) and [XGBoost](https://xgboost.readthedocs.io/). Datasets are provided via sklearn’s dataset loaders; see each dataset’s sklearn/UCI documentation for terms.
-# tabular-model-fair-comparison
+Built with [scikit-learn](https://scikit-learn.org/) (including histogram gradient boosting) and [XGBoost](https://xgboost.readthedocs.io/). Datasets are provided via sklearn’s dataset loaders and OpenML where noted; see each dataset’s sklearn/UCI/OpenML documentation for terms.

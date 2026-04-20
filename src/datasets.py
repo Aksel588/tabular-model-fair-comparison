@@ -1,7 +1,7 @@
 """
-Real-world tabular datasets loaded from sklearn (bundled, no network required).
+Tabular benchmarks: sklearn bundles (offline) plus OpenML German Credit (cached on first download).
 
-For OpenML/Kaggle mirrors, see docs/DATASETS.md — same protocol applies once CSVs are wired in.
+For more OpenML/Kaggle CSVs, see docs/DATASETS.md — same protocol applies once loaders are wired in.
 """
 
 from __future__ import annotations
@@ -14,10 +14,14 @@ import numpy as np
 import pandas as pd
 from sklearn.datasets import (
     fetch_california_housing,
+    fetch_openml,
     load_breast_cancer,
+    load_diabetes,
+    load_digits,
     load_wine,
 )
 from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder
 
 import pathlib
 import sys
@@ -126,6 +130,118 @@ def load_wine_bundle() -> DatasetBundle:
     )
 
 
+def load_digits_bundle() -> DatasetBundle:
+    """
+    Optical recognition of handwritten digits (10-class classification).
+    8×8 pixels as 64 numeric features — common sklearn tabular-style benchmark.
+    """
+    raw = load_digits(as_frame=True)
+    X = raw.data
+    y = raw.target.values
+    feature_names = list(X.columns)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=config.TEST_SIZE,
+        random_state=config.RANDOM_STATE,
+        stratify=y,
+    )
+    return DatasetBundle(
+        key="digits",
+        name="Digits (UCI / sklearn)",
+        task="classification",
+        source="sklearn.datasets.load_digits (UCI)",
+        license_note="BSD-style (scikit-learn dataset)",
+        target_description="Multiclass: digit 0–9",
+        leakage_notes="Image pixels as features; i.i.d. split ignores any group structure.",
+        X_train=X_train,
+        X_test=X_test,
+        y_train=y_train,
+        y_test=y_test,
+        feature_names=feature_names,
+        n_samples=len(y),
+        n_features=X.shape[1],
+        class_imbalance_ratio=_imbalance_ratio(y_train),
+        n_classes=int(len(np.unique(y))),
+    )
+
+
+def load_german_credit_bundle() -> DatasetBundle:
+    """
+    German Credit (OpenML id 31): binary classification with mixed numeric/categorical columns.
+    First run downloads into ``config.DATA_CACHE``; offline runs use the cache.
+    """
+    os.makedirs(config.DATA_CACHE, exist_ok=True)
+    raw = fetch_openml(
+        data_id=31,
+        as_frame=True,
+        parser="auto",
+        data_home=config.DATA_CACHE,
+    )
+    X = raw.data
+    y = LabelEncoder().fit_transform(raw.target)
+    feature_names = list(X.columns)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=config.TEST_SIZE,
+        random_state=config.RANDOM_STATE,
+        stratify=y,
+    )
+    return DatasetBundle(
+        key="german_credit",
+        name="German Credit (Statlog)",
+        task="classification",
+        source="OpenML data_id=31 (credit-g / Statlog)",
+        license_note="See OpenML dataset page; research use — check redistribution terms",
+        target_description="Binary: credit risk (encoded labels)",
+        leakage_notes="Historical credit data; sensitive attributes; random split not temporal; not for production fairness claims without audit.",
+        X_train=X_train,
+        X_test=X_test,
+        y_train=y_train,
+        y_test=y_test,
+        feature_names=feature_names,
+        n_samples=len(y),
+        n_features=X.shape[1],
+        class_imbalance_ratio=_imbalance_ratio(y_train),
+        n_classes=int(len(np.unique(y))),
+    )
+
+
+def load_diabetes_bundle() -> DatasetBundle:
+    """
+    Diabetes progression (regression). Small n; sklearn bundle.
+    """
+    raw = load_diabetes(as_frame=True)
+    X = raw.data
+    y = raw.target.values
+    feature_names = list(X.columns)
+    X_train, X_test, y_train, y_test = train_test_split(
+        X,
+        y,
+        test_size=config.TEST_SIZE,
+        random_state=config.RANDOM_STATE,
+    )
+    return DatasetBundle(
+        key="diabetes",
+        name="Diabetes (regression)",
+        task="regression",
+        source="sklearn.datasets.load_diabetes",
+        license_note="BSD-style (scikit-learn dataset)",
+        target_description="Disease progression quantitative response (1 year)",
+        leakage_notes="Small sample; high metric variance; baseline ridge vs trees is still informative.",
+        X_train=X_train,
+        X_test=X_test,
+        y_train=y_train,
+        y_test=y_test,
+        feature_names=feature_names,
+        n_samples=len(y),
+        n_features=X.shape[1],
+        class_imbalance_ratio=None,
+        n_classes=0,
+    )
+
+
 def load_california_housing() -> DatasetBundle:
     """
     California Housing regression. Pace & Barry; sklearn bundle.
@@ -160,14 +276,35 @@ def load_california_housing() -> DatasetBundle:
     )
 
 
+DATASET_KEYS: tuple[str, ...] = (
+    "breast_cancer",
+    "wine",
+    "digits",
+    "german_credit",
+    "california_housing",
+    "diabetes",
+)
+
+_DATASET_LOADERS = {
+    "breast_cancer": load_breast_cancer_bundle,
+    "wine": load_wine_bundle,
+    "digits": load_digits_bundle,
+    "german_credit": load_german_credit_bundle,
+    "california_housing": load_california_housing,
+    "diabetes": load_diabetes_bundle,
+}
+
+
+def list_dataset_keys() -> list[str]:
+    return list(DATASET_KEYS)
+
+
 def iter_datasets():
-    yield load_breast_cancer_bundle()
-    yield load_wine_bundle()
-    yield load_california_housing()
+    for key in DATASET_KEYS:
+        yield _DATASET_LOADERS[key]()
 
 
 def get_dataset(key: str) -> DatasetBundle:
-    for d in iter_datasets():
-        if d.key == key:
-            return d
-    raise KeyError(key)
+    if key not in _DATASET_LOADERS:
+        raise KeyError(key)
+    return _DATASET_LOADERS[key]()
